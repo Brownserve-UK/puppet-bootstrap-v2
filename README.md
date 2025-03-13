@@ -1,7 +1,7 @@
 # Puppet bootstrap scripts
 
 This repository contains a set of scripts to bootstrap the installation and configuration of a Puppet server and Puppet agents.
-These scripts are designed to be used in Brownserve environments, but may well be easily adapted to other environments.
+These scripts are designed to be used in Redgate environments, but may well be easily adapted to other environments.
 
 The scripts have been tested on the following operating systems:
 

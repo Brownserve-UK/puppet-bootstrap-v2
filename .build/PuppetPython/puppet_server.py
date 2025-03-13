@@ -446,7 +446,7 @@ def main():
         sys.exit(1)
 
     # Get the current hostname
-    current_hostname = subprocess.check_output(["hostname"], text=True).strip()
+    current_hostname = subprocess.check_output(["hostname"], universal_newlines=True).strip()
 
     # Print out a welcome message
     print_welcome(app)

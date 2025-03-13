@@ -6,7 +6,7 @@ Below you'll find some examples of how to use the bootstrap scripts.
 
 ```bash
 # First download the script
-curl -sSL https://raw.githubusercontent.com/Brownserve-UK/puppet-bootstrap/main/bootstrap_puppet-linux.py
+curl -sSL https://raw.githubusercontent.com/red-gate/puppet-bootstrap-v2/main/bootstrap_puppet-linux.py
 
 # Then call the script and it will guide you through the process
 ./bootstrap_puppet-linux.py
@@ -19,7 +19,7 @@ It will prompt you for all information required to configure and bootstrap the a
 
 ```powershell
 # First download the script
-Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/Brownserve-UK/puppet-bootstrap/main/bootstrap_puppet-windows.ps1' -OutFile bootstrap_puppet-windows.ps1
+Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/red-gate/puppet-bootstrap-v2/main/bootstrap_puppet-windows.ps1' -OutFile bootstrap_puppet-windows.ps1
 
 # Then call the script and it will guide you through the process
 .\bootstrap_puppet-windows.ps1
@@ -32,7 +32,7 @@ It will prompt you for all information required to configure and bootstrap the a
 
 ```bash
 # First download the script
-curl -sSL https://raw.githubusercontent.com/Brownserve-UK/puppet-bootstrap/main/bootstrap_puppet-linux.py
+curl -sSL https://raw.githubusercontent.com/red-gate/puppet-bootstrap-v2/main/bootstrap_puppet-linux.py
 
 # Then call the script with all options set
 ./bootstrap_puppet-linux.py --new-hostname "linux-agent.example.com" --agent-version '7' --puppet-server "puppetserver.example.com" --environment "production" --csr-extensions '{"pp_environment":"live","pp_role":"example_node","pp_service":"example_node"}' --skip-optional-prompts
@@ -44,7 +44,7 @@ In this example, all required information has been provided as command line opti
 
 ```powershell
 # First download the script
-Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/Brownserve-UK/puppet-bootstrap/main/bootstrap_puppet-windows.ps1' -OutFile bootstrap_puppet-windows.ps1
+Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/red-gate/puppet-bootstrap-v2/main/bootstrap_puppet-windows.ps1' -OutFile bootstrap_puppet-windows.ps1
 
 # Then call the script with all options set
 .\bootstrap_puppet-windows.ps1 -NewHostname "windows-agent.example.com" -AgentVersion '7' -PuppetServer "puppetserver.example.com" -Environment "production" -CsrExtensions @{pp_environment="live";pp_role="example_node";pp_service="example_node"} -Unattended

@@ -414,7 +414,7 @@ def set_puppet_config_option(config_options, config_file_path=None, section="age
             section,
         ]
 
-        result = subprocess.run(command, capture_output=True, text=True)
+        result = subprocess.run(command, capture_output=True, universal_newlines=True)
 
         if result.returncode != 0:
             raise Exception(
@@ -435,7 +435,7 @@ def enable_puppet_service():
 # Function to check if the user wants to change the hostname
 def check_hostname_change():
     try:
-        current_hostname = subprocess.check_output(["hostname"], text=True).strip()
+        current_hostname = subprocess.check_output(["hostname"], universal_newlines=True).strip()
     except subprocess.CalledProcessError as e:
         print(f"Error: {e}")
         sys.exit(1)
@@ -519,6 +519,7 @@ def parse_args():
     )
     parser.add_argument(
         "--csr-retry-interval",
+        type=int,
         help="How long to wait for the certificate to be signed",
         default=30,
     )
@@ -650,7 +651,7 @@ def main():
             )
             sys.exit(1)
 
-    current_hostname = subprocess.check_output(["hostname"], text=True).strip()
+    current_hostname = subprocess.check_output(["hostname"], universal_newlines=True).strip()
     new_hostname = current_hostname
 
     # If the environment is set to the default of production then check if the user wants to change it

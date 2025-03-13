@@ -63,6 +63,7 @@ def parse_args():
     )
     parser.add_argument(
         "--csr-retry-interval",
+        type=int,
         help="How long to wait for the certificate to be signed",
         default=30,
     )
@@ -194,7 +195,7 @@ def main():
             )
             sys.exit(1)
 
-    current_hostname = subprocess.check_output(["hostname"], text=True).strip()
+    current_hostname = subprocess.check_output(["hostname"], universal_newlines=True).strip()
     new_hostname = current_hostname
 
     # If the environment is set to the default of production then check if the user wants to change it

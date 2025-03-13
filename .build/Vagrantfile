@@ -47,7 +47,8 @@ Vagrant.configure('2') do |config|
   end
   # Config for a fully automated Windows Puppet agent
   config.vm.define 'auto-windows-agent', autostart: true do |awa|
-    awa.vm.box = 'gusztavvargadr/windows-server' # TODO: update this to use our box
+    awa.vm.box = 'red-gate/windows-2022-core'
+    awa.vm.box_url = 'https://vagrant.red-gate.com/red-gate/windows-2022-core'
     awa.vm.hostname = 'wa01'
     awa.vm.network :private_network, ip: '192.168.69.4'
     awa.vm.provision 'shell',
@@ -73,7 +74,8 @@ Vagrant.configure('2') do |config|
   # Config for an un-bootstrapped Windows machine that can be provisioned
   # manually, useful when you want to test the bootstrap scripts
   config.vm.define 'manual-windows-agent', autostart: false do |mwa|
-    mwa.vm.box = 'gusztavvargadr/windows-server' # TODO: update this to use our box
+    awa.vm.box = 'red-gate/windows-2022-core'
+    awa.vm.box_url = 'https://vagrant.red-gate.com/red-gate/windows-2022-core'
     mwa.vm.hostname = 'wa02'
     mwa.vm.network :private_network, ip: '192.168.69.6'
     mwa.vm.provision 'shell',

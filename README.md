@@ -1,5 +1,9 @@
 # Puppet bootstrap scripts
 
+> [!IMPORTANT]
+> As Perforce have changed the licensing model for Puppet this scripts will not work with versions of Puppet past V7.
+> These will be migrated over to work with OpenVox shortly.
+
 This repository contains a set of scripts to bootstrap the installation and configuration of a Puppet server and Puppet agents.
 These scripts are designed to be used in Redgate environments, but may well be easily adapted to other environments.
 

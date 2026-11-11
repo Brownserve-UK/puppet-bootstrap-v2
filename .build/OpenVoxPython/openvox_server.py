@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # ==============================================================================
-# This script aids in the provisioning of a new Puppet server
+# This script aids in the provisioning of a new OpenVox server
 # It can be run in an unattended mode or in full interactive mode with guided
 # prompts to help the user configure the server.
 # Detailed information on the script can be found in the repo's README.md file.
@@ -23,37 +23,37 @@ import json
 # Below is our long list of arguments that we need to pass to the script
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Script to provision a new Puppet server"
+        description="Script to provision a new OpenVox server"
     )
     parser.add_argument(
         "-v",
-        "--puppetserver-version",
-        help="The version of Puppet Server to install\nThis can be just the major version (e.g. '7') or the full version number (e.g. '7.12.0')",
+        "--openvox-server-version",
+        help="The version of OpenVox Server to install\nThis can be just the major version (e.g. '7') or the full version number (e.g. '7.12.0')",
     )
     parser.add_argument(
         "-e",
         "--bootstrap-environment",
-        help="The environment that the Puppet server should be bootstrapped from (e.g. production, development)",
+        help="The environment that the OpenVox server should be bootstrapped from (e.g. production, development)",
         # N.B: The default of 'production' is assumed in some logic below - be careful if changing this
         default="production",
     )
     parser.add_argument(
         "--bootstrap-hiera",
-        help="The name of the Hiera file to bootstrap the Puppet server with (path is relative to the root of your Puppet code repository)",
+        help="The name of the Hiera file to bootstrap the OpenVox server with (path is relative to the root of your OpenVox code repository)",
         # N.B: The default of 'hiera.bootstrap.yaml' is assumed in some logic below - be careful if changing this
         default="hiera.bootstrap.yaml",
     )
     parser.add_argument(
         "-c",
         "--csr-extensions",
-        help="The CSR extension attributes to set for the Puppet agent requests",
+        help="The CSR extension attributes to set for the OpenVox agent requests",
         # We have to use json.loads to convert the string to a dictionary, there's no other way that I'm aware of
         # to pass a dictionary as a command line argument
         type=json.loads,
     )
     parser.add_argument(
-        "--puppetserver-class",
-        help="The Puppet class to apply to the Puppet server",
+        "--openvox-server-class",
+        help="The OpenVox class to apply to the OpenVox server",
     )
     parser.add_argument(
         "--new-hostname",
@@ -101,13 +101,13 @@ def parse_args():
         default="r10k",
     )
     parser.add_argument(
-        "--puppet-agent-path",
-        help="The path to the puppet agent binary",
+        "--openvox-agent-path",
+        help="The path to the OpenVox agent binary",
         default="/opt/puppetlabs/bin/puppet",
     )
     parser.add_argument(
-        "--puppetserver-path",
-        help="The path to the puppetserver binary",
+        "--openvox-server-path",
+        help="The path to the OpenVox server binary",
         default="/opt/puppetlabs/bin/puppetserver",
     )
     parser.add_argument(
@@ -164,12 +164,12 @@ def install_gem(gem_name, gem_version=None):
 
 
 # Function to check if a gem is installed using the puppetserver gem command
-def check_gem_installed_puppetserver(puppetserver_path, gem_name):
+def check_gem_installed_openvox_server(openvox_server_path, gem_name):
     log.info(f"Checking if {gem_name} is installed")
     # ! 2025-01-19: The puppetserver gem command is warning of a "WARN FilenoUtil"
     # ! error when running the command. It doesn't seem to affect the functionality
     # ! but it's noisy so we'll redirect stderr to /dev/null for the time being
-    cmd = f"{puppetserver_path} gem list -i {gem_name} 2>/dev/null"
+    cmd = f"{openvox_server_path} gem list -i {gem_name} 2>/dev/null"
     try:
         subprocess.run(cmd, shell=True, check=True)
         return True
@@ -178,12 +178,12 @@ def check_gem_installed_puppetserver(puppetserver_path, gem_name):
 
 
 # Function to install a gem using the puppetserver gem command
-def install_gem_puppetserver(puppetserver_path, gem_name, gem_version=None):
+def install_gem_openvox_server(openvox_server_path, gem_name, gem_version=None):
     log.info(f"Installing {gem_name}")
     if gem_version:
-        cmd = f'{puppetserver_path} gem install {gem_name} -v "{gem_version}"'
+        cmd = f'{openvox_server_path} gem install {gem_name} -v "{gem_version}"'
     else:
-        cmd = f"{puppetserver_path} gem install {gem_name}"
+        cmd = f"{openvox_server_path} gem install {gem_name}"
     try:
         subprocess.run(cmd, shell=True, check=True)
     except subprocess.CalledProcessError as e:
@@ -473,15 +473,15 @@ def main():
 
 
     # If we don't have a version then we'll need to prompt the user
-    if not args.puppetserver_version:
+    if not args.openvox_server_version:
         version_prompt = None
         while not version_prompt or not re.match(r"^\d+(\.\d+)*$", version_prompt):
             version_prompt = input(
-                "Enter the version of Puppetserver to install. Can be a major version (e.g. 7) or exact (e.g 7.1.2): "
+                "Enter the version of OpenVox Server to install. Can be a major version (e.g. 7) or exact (e.g 7.1.2): "
             )
         version = version_prompt
     else:
-        version = args.puppetserver_version
+        version = args.openvox_server_version
 
     # Split the version into major and exact versions
     major_version, exact_version = split_version(version)
@@ -626,17 +626,17 @@ def main():
                 )
         else:
             bootstrap_hiera = args.bootstrap_hiera
-        # If bootstrap_hiera is set we MUST have puppetserver_class set otherwise Puppet apply won't actually do anything
-        if bootstrap_hiera and not args.puppetserver_class:
-            puppetserver_class = get_response(
-                "Please enter the Puppet class to apply to the Puppet server (e.g. puppetserver)",
+        # If bootstrap_hiera is set we MUST have openvox_server_class set otherwise OpenVox apply won't actually do anything
+        if bootstrap_hiera and not args.openvox_server_class:
+            openvox_server_class = get_response(
+                "Please enter the OpenVox class to apply to the OpenVox server (e.g. puppetserver)",
                 "string",
                 mandatory=True,
             )
         else:
-            puppetserver_class = args.puppetserver_class
+            openvox_server_class = args.openvox_server_class
         # Finally attempt to work out the repository name from the URI
-        # e.g. "git@github.com:my-org/Puppet.git" should give "Puppet"
+        # e.g. "git@github.com:my-org/OpenVox.git" should give "OpenVox"
         # If we fail then just set it to "control_repo"
         try:
             r10k_repo_name = r10k_repository.split("/")[-1].split(".")[0]
@@ -653,7 +653,7 @@ def main():
         r10k_repository_key_owner = None
         bootstrap_environment = None
         bootstrap_hiera = None
-        puppetserver_class = None
+        openvox_server_class = None
         r10k_repo_name = None
 
     # If the user hasn't supplied the eyaml keys then prompt for them
@@ -721,9 +721,9 @@ def main():
 
     ### Ensure the user is happy before continuing with the bootstrap process ###
     confirmation_message = f"""
-The Puppetserver will be configured with the following settings:
+The OpenVox server will be configured with the following settings:
 
-    - Puppet version: {message_version}
+    - OpenVox version: {message_version}
     - Hostname: {new_hostname}
 """
     if r10k_repository:
@@ -747,8 +747,8 @@ The Puppetserver will be configured with the following settings:
             )
         if bootstrap_hiera:
             confirmation_message += f"    - Bootstrap Hiera file: {bootstrap_hiera}\n"
-        if puppetserver_class:
-            confirmation_message += f"    - Puppetserver class: {puppetserver_class}\n"
+        if openvox_server_class:
+            confirmation_message += f"    - OpenVox server class: {openvox_server_class}\n"
     else:
         confirmation_message += "    - r10k: disabled\n"
     if eyaml_privatekey:
@@ -783,7 +783,7 @@ The Puppetserver will be configured with the following settings:
     if current_hostname != new_hostname:
         print_important(f"Setting the hostname to {new_hostname}")
         set_hostname(new_hostname)
-        # On the Puppetserver we also need to update the /etc/hostnames file
+        # On the OpenVox server we also need to update the /etc/hostnames file
         # We'll just replace whatever is in there with the new hostname
         try:
             with open("/etc/hostname", "w") as f:
@@ -805,14 +805,14 @@ The Puppetserver will be configured with the following settings:
             print_error(f"Failed to write /etc/hosts. Error: {e}")
             sys.exit(1)
 
-    # Install the Puppet server
-    if check_puppet_app_installed(app):
-        print_important("Puppet server is already installed, skipping installation")
+    # Install the OpenVox server
+    if check_openvox_app_installed(app):
+        print_important("OpenVox server is already installed, skipping installation")
     else:
-        print_important(f"Installing Puppet server")
-        path = download_puppet_package_archive(app, major_version)
+        print_important(f"Installing OpenVox server")
+        path = download_openvox_package_archive(app, major_version)
         install_package_archive(app, path)
-        install_puppet_app(app, exact_version)
+        install_openvox_app(app, exact_version)
 
     # If hiera-eyaml or r10k are being used then we'll need to make sure rubygems is installed
     if eyaml_privatekey or r10k_repository:
@@ -824,16 +824,16 @@ The Puppetserver will be configured with the following settings:
         print_important("Configuring hiera-eyaml")
         if not check_gem_installed("hiera-eyaml"):
             install_gem("hiera-eyaml", args.hiera_eyaml_version)
-        if not check_gem_installed_puppetserver(args.puppetserver_path, "hiera-eyaml"):
-            install_gem_puppetserver(
-                args.puppetserver_path, "hiera-eyaml", args.hiera_eyaml_version
+        if not check_gem_installed_openvox_server(args.openvox_server_path, "hiera-eyaml"):
+            install_gem_openvox_server(
+                args.openvox_server_path, "hiera-eyaml", args.hiera_eyaml_version
             )
         # Copy the eyaml keys to the correct location
         eyaml_key_locations = copy_eyaml_keys(eyaml_privatekey, eyaml_publickey, eyaml_path)
 
     # If we've got a bootstrap environment then ensure it's set in the puppet.conf
     if bootstrap_environment:
-        set_puppet_config_option(
+        set_openvox_config_option(
             {"environment": bootstrap_environment}, section="agent"
         )
 
@@ -887,39 +887,39 @@ The Puppetserver will be configured with the following settings:
             sys.exit(1)
 
         # Finally apply
-        # We only do this if we have a puppetserver class to apply, if the user is building a custom environment
-        # then they'll need to sort out the configuration of Puppet themselves
-        if puppetserver_class:
-            print_important(f"Applying the {puppetserver_class} class")
+        # We only do this if we have an OpenVox server class to apply, if the user is building a custom environment
+        # then they'll need to sort out the configuration of OpenVox themselves
+        if openvox_server_class:
+            print_important(f"Applying the {openvox_server_class} class")
             apply_args = [
                 'apply',
                 f"--hiera_config={bootstrap_hiera_path}",
                 f"--modulepath={module_path}",
                 "-e",
-                f"include {puppetserver_class}",
+                f"include {openvox_server_class}",
                 '--detailed-exitcodes',
             ]
             try:
-                subprocess.run([args.puppet_agent_path] + apply_args, check=True)
+                subprocess.run([args.openvox_agent_path] + apply_args, check=True)
             except subprocess.CalledProcessError as e:
-                # Puppet may return a 0 or a 2 exit code, 2 means there were changes
+                # OpenVox may return a 0 or a 2 exit code, 2 means there were changes
                 if e.returncode == 2 or e.returncode == 0:
-                    print_important("Puppetserver class applied successfully! :tada:")
-                    # We should be safe to enable the Puppet service now
-                    enable_puppet_service()
+                    print_important("OpenVox server class applied successfully! :tada:")
+                    # We should be safe to enable the OpenVox service now
+                    enable_openvox_service()
                     failed_run = False
                 else:
                     failed_run = True
-                    print_error(f"Failed to apply the Puppetserver class. Error: {e}")
+                    print_error(f"Failed to apply the OpenVox server class. Error: {e}")
 
     # If we've got this far then we're done
-    final_message = f"Puppet bootstrap process complete!\n"
+    final_message = f"OpenVox bootstrap process complete!\n"
     if failed_run:
-        final_message += f"Unfortunately the apply of the \"{puppetserver_class}\" was unsuccessful.\n"
+        final_message += f"Unfortunately the apply of the \"{openvox_server_class}\" was unsuccessful.\n"
         final_message += f"You'll need to check for any errors and correct them before proceeding further.\n"
     else:
         if r10k_repository:
-            final_message += f"Puppet should now take over and start managing this node.\n"
+            final_message += f"OpenVox should now take over and start managing this node.\n"
     # Generally speaking keeping secure keys around on disk that are no longer needed is a bad idea.
     # If we've successfully copied the keys to the correct location then we can delete the originals
     # (providing the user wants to)

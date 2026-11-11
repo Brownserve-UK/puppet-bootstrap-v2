@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Contains our common functions that are used by both the Puppet Agent and Puppet Server bootstrap scripts
+# Contains our common functions that are used by both the OpenVox Agent and OpenVox Server bootstrap scripts
 # These will be copied into the relevant bootstrap scripts via the build process.
 
 # We include the import statements here so that our linting tools don't complain
@@ -21,8 +21,8 @@ import json
 package_manager = None
 os_id = None
 os_version = None
-# Puppet doesn't put itself on the PATH so we need to specify the full path
-puppet_bin = "/opt/puppetlabs/bin/puppet"
+# OpenVox doesn't put itself on the PATH so we need to specify the full path
+openvox_bin = "/opt/puppetlabs/bin/puppet"
 
 
 # Function to print error messages in red
@@ -40,8 +40,8 @@ def print_success(message):
 # Function to print a welcome message
 def print_welcome(app):
     message = f"""
-    Welcome to the Puppet {app} bootstrap script!
-    This script will help you install and configure Puppet {app} on your system.
+    Welcome to the OpenVox {app} bootstrap script!
+    This script will help you install and configure OpenVox {app} on your system.
     You will be prompted for any information needed to begin the bootstrap process.
     Please refer to the README for more information on how to use this script.
     """
@@ -114,9 +114,9 @@ def split_version(version):
 
 # This functions checks to see if the requested application is already installed
 # Unfortunately these tools often don't appear in the PATH so we need to query the package manager
-def check_puppet_app_installed(app):
+def check_openvox_app_installed(app):
     log.info(f"Checking if {app} is already installed")
-    # Both Puppet Agent and Puppet Bolt has a - in the package name whereas Puppet Server does not :cry:
+    # Both OpenVox Agent and Puppet Bolt has a - in the package name whereas OpenVox Server does not :cry:
     if app == "agent" or app == "bolt":
         app = f"-{app}"
     app_name = f"puppet{app}"
@@ -136,7 +136,7 @@ def check_puppet_app_installed(app):
 
 
 # Function to download the relevant rpm/deb package to /tmp
-def download_puppet_package_archive(app, major_version):
+def download_openvox_package_archive(app, major_version):
     log.info(f"Downloading {app} package")
     if package_manager == "apt":
         # Both puppet-agent and puppetserver use the same deb package whereas puppet-bolt uses a different one
@@ -188,9 +188,9 @@ def install_package_archive(app, path):
 # Function to install the given application
 # If the version parameter is passed in then install that specific version
 # Otherwise install the latest version
-def install_puppet_app(app, version):
+def install_openvox_app(app, version):
     log.info(f"Installing {app}")
-    # Both Puppet Agent and Puppet Bolt has a - in the package name whereas Puppet Server does not :cry:
+    # Both OpenVox Agent and Puppet Bolt has a - in the package name whereas OpenVox Server does not :cry:
     if app == "agent" or app == "bolt":
         app = f"-{app}"
     if package_manager == "apt":
@@ -264,9 +264,9 @@ def install_package(package_name, package_version=None):
         sys.exit(1)
 
 
-# Function that sets the certificate extension attributes for Puppet agent requests
+# Function that sets the certificate extension attributes for OpenVox agent requests
 def set_certificate_extensions(extension_attributes):
-    log.info("Setting the certificate extension attributes for Puppet agent requests")
+    log.info("Setting the certificate extension attributes for OpenVox agent requests")
     pp_reg_cert_ext_short_names = [
         "pp_uuid",
         "pp_uuid",
@@ -380,8 +380,8 @@ def get_csr_attributes():
 
 # Function for setting the puppet configuration options
 # See https://www.puppet.com/docs/puppet/7/config_file_main.html for more information
-def set_puppet_config_option(config_options, config_file_path=None, section="agent"):
-    global puppet_bin
+def set_openvox_config_option(config_options, config_file_path=None, section="agent"):
+    global openvox_bin
     if config_file_path is None:
         config_file_path = "/etc/puppetlabs/puppet/puppet.conf"
 
@@ -390,8 +390,8 @@ def set_puppet_config_option(config_options, config_file_path=None, section="age
     if section not in valid_sections:
         raise ValueError(f"Invalid section: {section}")
 
-    if not os.path.exists(puppet_bin):
-        raise FileNotFoundError(f"Could not find the puppet command at {puppet_bin}")
+    if not os.path.exists(openvox_bin):
+        raise FileNotFoundError(f"Could not find the puppet command at {openvox_bin}")
 
     if not os.path.exists(config_file_path):
         raise FileNotFoundError(
@@ -401,7 +401,7 @@ def set_puppet_config_option(config_options, config_file_path=None, section="age
     for key, value in config_options.items():
         log.info(f"Now setting {key} = {value}")
         command = [
-            puppet_bin,
+            openvox_bin,
             "config",
             "set",
             key,
@@ -421,7 +421,7 @@ def set_puppet_config_option(config_options, config_file_path=None, section="age
 
 
 # Function to enable the puppet service
-def enable_puppet_service():
+def enable_openvox_service():
     log.info("Enabling the puppet service")
     try:
         subprocess.run(["systemctl", "enable", "puppet"], check=True)

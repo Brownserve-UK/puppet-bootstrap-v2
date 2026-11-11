@@ -1,11 +1,11 @@
 #!/usr/bin/bash
-/puppet_bootstrap/bootstrap_puppet-server.py \
-    --puppetserver-version "$1" \
+/puppet_bootstrap/bootstrap_openvox-server.py \
+    --openvox-server-version "$1" \
     --new-hostname "$2" \
     --bootstrap-environment "production" \
     --bootstrap-hiera "hiera.bootstrap.yaml" \
     --csr-extensions '{"pp_environment":"live","pp_role":"puppet7_server","pp_service":"puppetserver"}' \
-    --puppetserver-class "puppetserver" \
+    --openvox-server-class "puppetserver" \
     --r10k-repository "https://github.com/Brownserve-UK/puppet_hiera_example.git" \
     --eyaml-privatekey "/vagrant/.vagrant-files/private_key.pkcs7.pem" \
     --eyaml-publickey "/vagrant/.vagrant-files/public_key.pkcs7.pem" \

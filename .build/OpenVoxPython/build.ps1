@@ -1,17 +1,17 @@
 <#
 .SYNOPSIS
-    Build the PuppetPython module.
+    Build the OpenVoxPython module.
 #>
 [CmdletBinding()]
 
 $ErrorActionPreference = 'Stop'
 
 $RepoRoot = Join-Path $PSScriptRoot '..\..'
-$CommonFile = Join-Path $PSScriptRoot 'Common.py'
-$ServerBootstrapScript = Join-Path $PSScriptRoot 'puppet_server.py'
-$AgentBootstrapScript = Join-Path $PSScriptRoot 'puppet_agent.py'
-$ExportedAgentScript = Join-Path $RepoRoot 'bootstrap_puppet-linux.py'
-$ExportedServerScript = Join-Path $RepoRoot 'bootstrap_puppet-server.py'
+$CommonFile = Join-Path $PSScriptRoot 'common.py'
+$ServerBootstrapScript = Join-Path $PSScriptRoot 'openvox_server.py'
+$AgentBootstrapScript = Join-Path $PSScriptRoot 'openvox_agent.py'
+$ExportedAgentScript = Join-Path $RepoRoot 'bootstrap_openvox-linux.py'
+$ExportedServerScript = Join-Path $RepoRoot 'bootstrap_openvox-server.py'
 $CommonSectionStart = '### !!! Start Common Functions !!!'
 $CommonSectionEnd = '### !!! End Common Functions !!!'
 $CommonInsertString = '### !!! Common Functions !!! ###'

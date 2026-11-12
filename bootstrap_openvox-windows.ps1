@@ -1,30 +1,30 @@
 <#
 .SYNOPSIS
-    This script will aid you in installing and configuring Puppet on Windows.
+    This script will aid you in installing and configuring OpenVox on Windows.
 .DESCRIPTION
-    This script will guide you through the process of installing and configuring Puppet on Windows.
+    This script will guide you through the process of installing and configuring OpenVox on Windows.
     The script can be run fully automated by passing in all the required parameters, or it can be run interactively
-    which will guide you through the process of installing and configuring Puppet.
+    which will guide you through the process of installing and configuring OpenVox.
     For detailed information refer to the repository README.md file.
 #>
 [CmdletBinding()]
 param (
-    # The version of Puppet agent to install, can be a major version (e.g. 7) or an exact version (e.g. 7.12.0)
+    # The version of OpenVox agent to install, can be a major version (e.g. 7) or an exact version (e.g. 7.12.0)
     [Parameter(Mandatory = $false)]
     [int]
     $AgentVersion = 7,
 
-    # The Puppet server to connect to
+    # The OpenVox server to connect to
     [Parameter(Mandatory = $false)]
     [string]
-    $PuppetServer,
+    $OpenVoxServer,
 
-    # The Puppet server port to connect to
+    # The OpenVox server port to connect to
     [Parameter(Mandatory = $false)]
     [int]
-    $PuppetServerPort = 8140,
+    $OpenVoxServerPort = 8140,
 
-    # The Puppet environment to use
+    # The OpenVox environment to use
     [Parameter(Mandatory = $false)]
     [string]
     $Environment = 'production',
@@ -34,7 +34,7 @@ param (
     [string]
     $CertificateName,
 
-    # Any certificate extensions to add to the Puppet agent certificate
+    # Any certificate extensions to add to the OpenVox agent certificate
     [Parameter(Mandatory = $false)]
     [hashtable]
     $CSRExtensions,
@@ -44,17 +44,17 @@ param (
     [string]
     $EnableService = $true,
 
-    # The credentials to use for the Puppet service
+    # The credentials to use for the OpenVox service
     [Parameter(Mandatory = $false)]
     [pscredential]
-    $PuppetServiceAccountCredentials,
+    $ServiceAccountCredentials,
 
-    # The domain to use for the Puppet service account
+    # The domain to use for the OpenVox service account
     [Parameter(Mandatory = $false)]
     [string]
-    $PuppetServiceAccountDomain,
+    $ServiceAccountDomain,
 
-    # If set the Puppet agent will wait for the certificate to be signed before continuing
+    # If set the OpenVox agent will wait for the certificate to be signed before continuing
     [Parameter(Mandatory = $false)]
     [string]
     $CSRRetryInterval = 30,
@@ -64,9 +64,9 @@ param (
     [string]
     $NewHostname,
 
-    # Skip the Puppetserver check
+    # Skip the OpenVox server check
     [switch]
-    $SkipPuppetserverCheck,
+    $SkipOpenVoxServerCheck,
 
     # Skips all optional prompts
     [switch]
@@ -76,7 +76,7 @@ param (
     [switch]
     $SkipConfirmation,
 
-    # Skips the initial Puppet run, useful in some edge-cases
+    # Skips the initial OpenVox run, useful in some edge-cases
     [switch]
     $SkipInitialRun,
 
@@ -91,7 +91,7 @@ if ($Unattended)
 {
     $SkipConfirmation = $true
     $SkipOptionalPrompts = $true
-    $SkipPuppetserverCheck = $true
+    $SkipOpenVoxServerCheck = $true
 }
 
 # Always get current hostname so we can skip setting it if it's not changing
@@ -306,7 +306,7 @@ function Set-CertificateExtensions
     }
 }
 
-function Set-PuppetConfigOption
+function Set-OpenVoxConfigOption
 {
     [CmdletBinding()]
     param
@@ -332,10 +332,10 @@ function Set-PuppetConfigOption
     {
         $ConfigFilePath = 'C:\ProgramData\PuppetLabs\puppet\etc\puppet.conf'
     }
-    $PuppetBin = Get-Command 'puppet' | Select-Object -ExpandProperty Path -ErrorAction SilentlyContinue
-    if (!(Test-Path $PuppetBin))
+    $OpenVoxBin = Get-Command 'puppet' | Select-Object -ExpandProperty Path -ErrorAction SilentlyContinue
+    if (!(Test-Path $OpenVoxBin))
     {
-        throw "Could not find the puppet command at $PuppetBin"
+        throw "Could not find the puppet command at $OpenVoxBin"
     }
     if (!(Test-Path $ConfigFilePath))
     {
@@ -343,7 +343,7 @@ function Set-PuppetConfigOption
     }
     $ConfigOptions.GetEnumerator() | ForEach-Object {
         Write-Verbose "Now setting $($_.Key) = $($_.Value)"
-        & $PuppetBin config set "$($_.Key)" "$($_.Value)" --config $ConfigFilePath --section $Section
+        & $OpenVoxBin config set "$($_.Key)" "$($_.Value)" --config $ConfigFilePath --section $Section
         if ($LASTEXITCODE -ne 0)
         {
             Write-Error "Failed to set $($_.Key) to $($_.Value)"
@@ -351,12 +351,12 @@ function Set-PuppetConfigOption
     }
 }
 
-function Enable-PuppetService
+function Enable-OpenVoxService
 {
     [CmdletBinding()]
     param
     (
-        # The name of the Puppet service
+        # The name of the OpenVox service
         [Parameter(Mandatory = $false)]
         [string]
         $ServiceName = 'puppet'
@@ -376,7 +376,7 @@ function Enable-PuppetService
 
 }
 
-function Install-Puppet
+function Install-OpenVox
 {
     param (
         [Parameter(Mandatory = $true)]
@@ -389,11 +389,11 @@ function Install-Puppet
 
         [Parameter(Mandatory = $false)]
         [pscredential]
-        $PuppetServiceAccountCredentials,
+        $ServiceAccountCredentials,
 
         [Parameter(Mandatory = $false)]
         [string]
-        $PuppetServiceAccountDomain
+        $ServiceAccountDomain
     )
     $URIBase = "https://downloads.puppetlabs.com/windows/puppet$MajorVersion"
 
@@ -416,7 +416,7 @@ function Install-Puppet
     }
 
     $DownloadPath = "$env:TEMP\puppet-agent.msi"
-    Write-Verbose "Downloading Puppet agent from $URI to $DownloadPath"
+    Write-Verbose "Downloading OpenVox agent from $URI to $DownloadPath"
 
     # Check if BITs is available and use it if it is
     if (Get-Command 'Start-BitsTransfer' -ErrorAction SilentlyContinue)
@@ -444,7 +444,7 @@ function Install-Puppet
         }
         catch
         {
-            throw "Failed to download Puppet agent from $URI to $DownloadPath.`n$($_.Exception.Message)"
+            throw "Failed to download OpenVox agent from $URI to $DownloadPath.`n$($_.Exception.Message)"
         }
     }
     $install_args = @(
@@ -455,40 +455,40 @@ function Install-Puppet
     )
     <#
         !!! Don't set PUPPET_SERVER, PUPPET_CA_SERVER, PUPPET_AGENT_CERTNAME, or PUPPET_AGENT_ENVIRONMENT via MSI properties
-        !!! If you do that then you'll run into unexpected consequences and will have to uninstall Puppet completely to fix it
-        !!! Instead these will be set by the Set-PuppetConfigOption function after installation
+        !!! If you do that then you'll run into unexpected consequences and will have to uninstall OpenVox completely to fix it
+        !!! Instead these will be set by the Set-OpenVoxConfigOption function after installation
     #>
 
     # See https://www.puppet.com/docs/puppet/7/install_agents.html for more information on these properties
-    if ($PuppetServiceAccountCredentials)
+    if ($ServiceAccountCredentials)
     {
-        $install_args += "PUPPET_AGENT_ACCOUNT_USER=$($PuppetServiceAccountCredentials.UserName)"
+        $install_args += "PUPPET_AGENT_ACCOUNT_USER=$($ServiceAccountCredentials.UserName)"
         # We may not have a password if the account is a service account or similar
-        if ($PuppetServiceAccountCredentials.Password.Length -gt 0)
+        if ($ServiceAccountCredentials.Password.Length -gt 0)
         {
             try
             {
-                $DecryptedPassword = $PuppetServiceAccountCredentials.Password | ConvertFrom-SecureString -AsPlainText
+                $DecryptedPassword = $ServiceAccountCredentials.Password | ConvertFrom-SecureString -AsPlainText
             }
             catch
             {
-                throw "Failed to decrypt password for account $($PuppetServiceAccountCredentials.UserName).`n$($_.Exception.Message)"
+                throw "Failed to decrypt password for account $($ServiceAccountCredentials.UserName).`n$($_.Exception.Message)"
             }
             $install_args += "PUPPET_AGENT_ACCOUNT_PASSWORD=$DecryptedPassword"
         }
     }
 
-    if ($PuppetServiceAccountDomain)
+    if ($ServiceAccountDomain)
     {
-        $install_args += "PUPPET_AGENT_ACCOUNT_DOMAIN=$PuppetServiceAccountDomain"
+        $install_args += "PUPPET_AGENT_ACCOUNT_DOMAIN=$ServiceAccountDomain"
     }
 
     # Use Start-Process to install the MSI so we can wait for it to finish
-    Write-Verbose "Installing Puppet agent from $DownloadPath"
+    Write-Verbose "Installing OpenVox agent from $DownloadPath"
     $InstallProcess = Start-Process -FilePath 'msiexec.exe' -ArgumentList $install_args -Wait -PassThru -NoNewWindow
     if ($InstallProcess.ExitCode -ne 0)
     {
-        throw "Failed to install Puppet agent from $DownloadPath, exit code was $($InstallProcess.ExitCode)"
+        throw "Failed to install OpenVox agent from $DownloadPath, exit code was $($InstallProcess.ExitCode)"
     }
 }
 
@@ -499,47 +499,47 @@ if (!(Test-Administrator))
 }
 
 <#
-    The below prompts the user for the _required_ information to install and configure Puppet
+    The below prompts the user for the _required_ information to install and configure OpenVox
     if the information has not been passed in via parameters
 #>
-if (!$PuppetServer)
+if (!$OpenVoxServer)
 {
     if ($Unattended)
     {
-        throw 'The Puppet server FQDN is required for bootstrapping'
+        throw 'The OpenVox server FQDN is required for bootstrapping'
     }
-    while (!$PuppetServer)
+    while (!$OpenVoxServer)
     {
-        $PuppetServer = Read-Host -Prompt 'Enter the Puppet server FQDN: '
+        $OpenVoxServer = Read-Host -Prompt 'Enter the OpenVox server FQDN: '
     }
 }
 
-if ($PuppetServer -notmatch '\.[a-zA-Z0-9-]+$')
+if ($OpenVoxServer -notmatch '\.[a-zA-Z0-9-]+$')
 {
     if (!$Unattended)
     {
-        while ($PuppetServer -notmatch '^[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*$')
+        while ($OpenVoxServer -notmatch '^[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*$')
         {
-            Write-Host 'The Puppet server must be fully qualified (e.g. "puppetserver.domain")' -ForegroundColor Red
-            $PuppetServer = Read-Host -Prompt 'Enter the Puppet server FQDN: '
+            Write-Host 'The OpenVox server must be fully qualified (e.g. "openvoxserver.domain")' -ForegroundColor Red
+            $OpenVoxServer = Read-Host -Prompt 'Enter the OpenVox server FQDN: '
         }
     }
     else
     {
-        throw 'The Puppet server must be fully qualified (e.g. "puppetserver.domain")'
+        throw 'The OpenVox server must be fully qualified (e.g. "openvoxserver.domain")'
     }
 }
 
-# Extract the domain name from the Puppet server
-# Due to the way Puppet certs work it's helpful to know this especially when renaming a node
-$DomainName = $PuppetServer -replace '^[a-zA-Z0-9-]+\.', ''
+# Extract the domain name from the OpenVox server
+# Due to the way OpenVox certs work it's helpful to know this especially when renaming a node
+$DomainName = $OpenVoxServer -replace '^[a-zA-Z0-9-]+\.', ''
 
 if (!$AgentVersion)
 {
     $VersionPrompt = $null
     while ($VersionPrompt -notmatch '^\d+(\.\d+)*$')
     {
-        $VersionPrompt = Read-Host -Prompt 'Enter the version of Puppet agent to install, Can be a major version (e.g. 7) or exact (e.g 7.1.2):'
+        $VersionPrompt = Read-Host -Prompt 'Enter the version of OpenVox agent to install, Can be a major version (e.g. 7) or exact (e.g 7.1.2):'
     }
     $AgentVersion = $VersionPrompt
 }
@@ -553,26 +553,26 @@ if ($VersionSplit.exactVersion)
 
 Write-Verbose "Installing Version $AgentVersion"
 
-# Check we can contact the Puppet Server
+# Check we can contact the OpenVox Server
 # This is handy as we don't want to get too far in the script if we can't contact the server!
-if (!$SkipPuppetserverCheck)
+if (!$SkipOpenVoxServerCheck)
 {
-    Write-Verbose "Checking if we can ping $PuppetServer"
-    $arguments = @($PuppetServer)
-    $PuppetServerPing = & ping $arguments
+    Write-Verbose "Checking if we can ping $OpenVoxServer"
+    $arguments = @($OpenVoxServer)
+    $OpenVoxServerPing = & ping $arguments
     if ($LASTEXITCODE -ne 0)
     {
-        $PuppetServerPing
-        throw "Unable to ping $PuppetServer, are you sure it's correct?"
+        $OpenVoxServerPing
+        throw "Unable to ping $OpenVoxServer, are you sure it's correct?"
     }
 }
 
 <#
-    The below prompts the user for the _optional_ information to install and configure Puppet
+    The below prompts the user for the _optional_ information to install and configure OpenVox
     providing they have not been passed in via the script parameters or the user has not skipped them.
     We don't prompt for everything the user could possibly want, only the most common options
     that are wanted in like 99% of cases, theses are:
-        - Puppet Environment
+        - OpenVox Environment
         - CSR Extensions
         - New Hostname
 #>
@@ -596,7 +596,7 @@ if (!$SkipOptionalPrompts)
 {
     if (!$Environment)
     {
-        $Environment = Get-Response 'Enter the Puppet environment to use (e.g production), press enter to skip' 'string'
+        $Environment = Get-Response 'Enter the OpenVox environment to use (e.g production), press enter to skip' 'string'
     }
 
     if (!$CertificateName)
@@ -637,10 +637,10 @@ if ($NewHostname -match '\.')
 ###
 
 ### Double check the user wants to continue ###
-$Message = "`nPuppet will be installed with the following options:`n`n"
+$Message = "`nOpenVox will be installed with the following options:`n`n"
 $Message += @"
-    Puppet Server: $PuppetServer
-    Puppet Server Port: $PuppetServerPort
+    OpenVox Server: $OpenVoxServer
+    OpenVox Server Port: $OpenVoxServerPort
     Hostname: $NewHostname`n
 "@
 if ($CertificateName)
@@ -661,23 +661,23 @@ if ($CSRRetryInterval -gt 0)
 }
 if ($EnableService)
 {
-    $Message += "    Enable Puppet Service: $($EnableService)`n"
+    $Message += "    Enable OpenVox Service: $($EnableService)`n"
 }
-if ($PuppetServiceAccountCredentials)
+if ($ServiceAccountCredentials)
 {
-    $Message += "    Puppet Service Account: $($PuppetServiceAccountCredentials.UserName)`n"
-    if ($PuppetServiceAccountCredentials.Password.Length -gt 0)
+    $Message += "    OpenVox Service Account: $($ServiceAccountCredentials.UserName)`n"
+    if ($ServiceAccountCredentials.Password.Length -gt 0)
     {
-        $Message += "    Puppet Service Account Password: <redacted>`n"
+        $Message += "    OpenVox Service Account Password: <redacted>`n"
     }
     else
     {
-        $Message += "    Puppet Service Account Password: <empty>`n"
+        $Message += "    OpenVox Service Account Password: <empty>`n"
     }
 }
-if ($PuppetServiceAccountDomain)
+if ($ServiceAccountDomain)
 {
-    $Message += "    Puppet Service Account Domain: $($PuppetServiceAccountDomain)`n"
+    $Message += "    OpenVox Service Account Domain: $($ServiceAccountDomain)`n"
 }
 
 if (!$SkipConfirmation)
@@ -697,7 +697,7 @@ else
 }
 
 
-### Begin by making sure the Machine is ready to go with Puppet ###
+### Begin by making sure the Machine is ready to go with OpenVox ###
 ### Begin bootstrap ###
 Write-Host 'Beginning bootstrap process' -ForegroundColor Magenta
 
@@ -717,9 +717,9 @@ if ($NewHostname -ne $CurrentNodeName)
     }
     # Windows name changes don't take hold until after a reboot
     Write-Warning 'Hostname change will take effect after a reboot'
-    # If we're changing hostnames as part of this process then we'll need to tell Puppet to use the new hostname
+    # If we're changing hostnames as part of this process then we'll need to tell OpenVox to use the new hostname
     # in the certificate request otherwise we'd have to reboot and re-run the script to pick up the new hostname
-    # (Puppet seems to have a real hard time determining domain names on Windows...)
+    # (OpenVox seems to have a real hard time determining domain names on Windows...)
     # However if the user is overriding the certificate name then we don't need to do this as they're doing something
     # more advanced and will likely know what they're doing.
     if (!$CertificateName)
@@ -729,8 +729,8 @@ if ($NewHostname -ne $CurrentNodeName)
     }
 }
 
-# Install puppet-agent
-Write-Host 'Installing puppet-agent' -ForegroundColor Magenta
+# Install the OpenVox agent
+Write-Host 'Installing OpenVox agent' -ForegroundColor Magenta
 $InstallArgs = @{
 }
 if ($ExactVersion)
@@ -741,23 +741,23 @@ else
 {
     $InstallArgs.Add('MajorVersion', $MajorVersion)
 }
-if ($PuppetServiceAccountCredentials)
+if ($ServiceAccountCredentials)
 {
-    $InstallArgs.Add('PuppetServiceAccountCredentials', $PuppetServiceAccountCredentials)
+    $InstallArgs.Add('ServiceAccountCredentials', $ServiceAccountCredentials)
 }
-if ($PuppetServiceAccountDomain)
+if ($ServiceAccountDomain)
 {
-    $InstallArgs.Add('PuppetServiceAccountDomain', $PuppetServiceAccountDomain)
+    $InstallArgs.Add('ServiceAccountDomain', $ServiceAccountDomain)
 }
 try
 {
-    Install-Puppet @InstallArgs
+    Install-OpenVox @InstallArgs
 }
 catch
 {
-    throw "Failed to install puppet-agent.`n$($_.Exception.Message)"
+    throw "Failed to install OpenVox agent.`n$($_.Exception.Message)"
 }
-# Ensure path is updated to contain the newly installed Puppet binaries
+# Ensure path is updated to contain the newly installed OpenVox binaries
 if ($env:Path -notcontains 'C:\Program Files\Puppet Labs\Puppet\bin' )
 {
     $env:Path += ';C:\Program Files\Puppet Labs\Puppet\bin'
@@ -776,78 +776,78 @@ if ($CSRExtensions)
     }
 }
 
-$PuppetMainConfigOptions = @{server = $PuppetServer; masterport = $PuppetServerPort }
-$PuppetAgentConfigOptions = @{}
+$OpenVoxMainConfigOptions = @{server = $OpenVoxServer; masterport = $OpenVoxServerPort }
+$OpenVoxAgentConfigOptions = @{}
 if ($Environment)
 {
-    $PuppetAgentConfigOptions.Add('environment', $Environment)
+    $OpenVoxAgentConfigOptions.Add('environment', $Environment)
 }
 
 if ($CertificateName)
 {
-    $PuppetMainConfigOptions.Add('certname', $CertificateName)
+    $OpenVoxMainConfigOptions.Add('certname', $CertificateName)
 }
 
-if ($PuppetMainConfigOptions)
+if ($OpenVoxMainConfigOptions)
 {
-    Write-Host 'Setting Puppet [main] configuration options' -ForegroundColor Magenta
+    Write-Host 'Setting OpenVox [main] configuration options' -ForegroundColor Magenta
     try
     {
-        Set-PuppetConfigOption -ConfigOptions $PuppetMainConfigOptions -Section 'main'
+        Set-OpenVoxConfigOption -ConfigOptions $OpenVoxMainConfigOptions -Section 'main'
     }
     catch
     {
-        throw "Failed to set Puppet agent environment.`n$($_.Exception.Message)"
+        throw "Failed to set OpenVox agent environment.`n$($_.Exception.Message)"
     }
 }
-if ($PuppetAgentConfigOptions)
+if ($OpenVoxAgentConfigOptions)
 {
-    Write-Host 'Setting Puppet [agent] configuration options' -ForegroundColor Magenta
+    Write-Host 'Setting OpenVox [agent] configuration options' -ForegroundColor Magenta
     try
     {
-        Set-PuppetConfigOption -ConfigOptions $PuppetAgentConfigOptions -Section 'agent'
+        Set-OpenVoxConfigOption -ConfigOptions $OpenVoxAgentConfigOptions -Section 'agent'
     }
     catch
     {
-        throw "Failed to set Puppet agent configuration.`n$($_.Exception.Message)"
+        throw "Failed to set OpenVox agent configuration.`n$($_.Exception.Message)"
     }
 }
 ###
 
-# For some reason Puppet sometimes isn't quite ready to go after all this
+# For some reason OpenVox sometimes isn't quite ready to go after all this
 # I've found waiting for a few seconds seems to help :shrug:
 Start-Sleep -Seconds 10
 
 if (!$SkipInitialRun)
 {
-    # Perform first run of Puppet
-    Write-Host 'Performing initial Puppet run' -ForegroundColor Magenta
-    $PuppetArgs = @('agent', '-t', '--detailed-exitcodes')
+    # Perform first run of OpenVox
+    Write-Host 'Performing initial OpenVox run' -ForegroundColor Magenta
+    $OpenVoxArgs = @('agent', '-t', '--detailed-exitcodes')
     if ($CSRRetryInterval -gt 0)
     {
-        $PuppetArgs += @('--waitforcert', $CSRRetryInterval)
-        Write-Host 'Please ensure you sign the certificate for this node on the Puppet server' -ForegroundColor Yellow
+        $OpenVoxArgs += @('--waitforcert', $CSRRetryInterval)
+        Write-Host 'Please ensure you sign the certificate for this node on the OpenVox server' -ForegroundColor Yellow
     }
 
-    & puppet $PuppetArgs
+    & puppet $OpenVoxArgs
 
     if ($LASTEXITCODE -notin (0, 2))
     {
         # Only warn as we want to continue if the run fails
-        Write-Warning "First Puppet run failed with exit code $LASTEXITCODE"
+        Write-Warning "First OpenVox run failed with exit code $LASTEXITCODE"
     }
 }
 
 if ($EnableService)
 {
-    Write-Host 'Enabling Puppet Service' -ForegroundColor Magenta
+    Write-Host 'Enabling OpenVox Service' -ForegroundColor Magenta
     try
     {
-        Enable-PuppetService
+        Enable-OpenVoxService
     }
     catch
     {
-        throw "Failed to enable Puppet service.`n$($_.Exception.Message)"
+        throw "Failed to enable OpenVox service.`n$($_.Exception.Message)"
     }
 }
-Write-Host 'Puppet bootstrapping complete 🎉' -ForegroundColor Green
+Write-Host 'OpenVox bootstrapping complete 🎉' -ForegroundColor Green
